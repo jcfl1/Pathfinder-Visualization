@@ -1,2 +1,2 @@
-# Sistemas Inteligentes - Buscas Informadas p5js
-Projeto da disciplina de Sistemas Inteligentes (CIn, UFPE - 2022.2)
+# Pathfinder Visualization p5js
+Project from Intelligent Systems discipline (CIn, UFPE - 2022.2)
