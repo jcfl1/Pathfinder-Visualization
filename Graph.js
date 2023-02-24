@@ -38,31 +38,40 @@ class Graph{
       return 10;
     }
     else{
-      return 9999999;
+      return 999;
     }
   }
     
   get_up(i, j, matrix){
     if(i > 0){
-      return [i-1, j, this.assign_cost(matrix[i-1][j])];
+      if(this.assign_cost(matrix[i-1][j]) != 999){
+        let ret = [i-1, j, this.assign_cost(matrix[i-1][j])];
+        return ret;
+      }
     }
     return null;
   }
   get_right(i, j, matrix){
     if(j < this.dim-1){
-      return [i, j+1, this.assign_cost(matrix[i][j+1])];
+      if(this.assign_cost(matrix[i][j+1]) != 999){
+        return [i, j+1, this.assign_cost(matrix[i][j+1])];
+      }
     }
     return null;
   }
   get_down(i, j, matrix){
     if(i < this.dim-1){
-      return [i+1, j, this.assign_cost(matrix[i+1][j])];
+      if(this.assign_cost(matrix[i+1][j]) != 999){
+        return [i+1, j, this.assign_cost(matrix[i+1][j])];
+      }
     }
     return null;
   }
   get_left(i, j, matrix){
     if(j > 0){
-      return [i, j-1, this.assign_cost(matrix[i][j-1])];
+      if(this.assign_cost(matrix[i][j-1]) != 999){
+        return [i, j-1, this.assign_cost(matrix[i][j-1])];
+      }
     }
     return null;
   }
