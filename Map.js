@@ -1,76 +1,78 @@
+// [ToDo] Setar bloco em baixo do agente para ser areia
+
 class Map{
   constructor(width, height, rows, cols){
     // Creating canvas
     this.width = width;
     this.height = height;
-    createCanvas(width, height);
-    background(50);
     
     // Setting block size
     this.rows = rows;
     this.cols = cols;
     this.block_width = width/cols;
     this.block_height = height/rows;
+    this.initialize_matrix();
+    
     this.pathExists = false;
-    this.visitados = this.initialize_visited();
     
-    while(this.pathExists == false){
-      // Create Visualization Matrix
-      this.initialize_matrix();
-    
-    // Create Graph
-      this.graph = new Graph(this.matrix);
+     while(this.pathExists == false){
+       // Create Visualization Matrix
+       this.initialize_matrix();
+       
+       // Create Agent
+       this.agent_pos_x = floor(random(cols));
+       this.agent_pos_y = floor(random(rows));
+       this.matrix[this.agent_pos_y][this.agent_pos_x] = 0;
       
-      this.checkPath();
-    }
-    
-    
-    
-    // Create Agent
-    this.agent_pos_x = floor(random(cols));
-    this.agent_pos_y = floor(random(rows));
-    
-    // Create target
-    const MIN_DIST = 5;
-    do{
-      this.target_pos_x = floor(random(cols));
-    } while(abs(this.target_pos_x - this.agent_pos_x) < MIN_DIST);
-    do{
-      this.target_pos_y = floor(random(rows));
-    } while(abs(this.target_pos_y - this.agent_pos_y) < MIN_DIST);
-    
+       // Create target
+       const MIN_DIST = 5;
+       do{
+        this.target_pos_x = floor(random(cols));
+        } while(abs(this.target_pos_x - this.agent_pos_x) < MIN_DIST);
+       do{
+        this.target_pos_y = floor(random(rows));
+        } while(abs(this.target_pos_y - this.agent_pos_y) < MIN_DIST);
+       this.matrix[this.target_pos_y][this.target_pos_x] = 0;
+      
+       // Create Graph
+       this.graph = new Graph(this.matrix);
+      
+       // Create Visited Matrix
+       this.initialize_visited();
+      
+      
+       this.checkPath(); // se não houver caminho ate o alvo, o mapa será refeito
+       this.show()
+     }
     
   }
   
-  checkPath(){
-    this.bfs();
-    if(this.visitados[this.target_pos_y][this.target_pos_x]){
-      this.pathExists = true;
-    }
-  }
+   checkPath(){
+     this.bfs();
+     if(this.visited[this.target_pos_y][this.target_pos_x]){
+       this.pathExists = true;
+     }
+   }
   
   bfs() {
-  let startNode = [];
-  startNode.push(this.agent_pos_y)
-  startNode.push(this.agent_pos_x)
-  let queue = [startNode];
-  
-  this.visitados[startNode[0]][startNode[1]] = true;
-  
-  while (queue.length > 0) {
-    let currentNode = queue.shift();
+    let startNode = [];
+    startNode.push(this.agent_pos_y)
+    startNode.push(this.agent_pos_x)
+    let queue = [startNode];
     
-    let neighbors = this.graph[currentNode[0]][currentNode[1]];
-    
-    for (let i = 0; i < neighbors.length; i++) {
-      let neighbor = neighbors[i];
-      
-      if (!this.visitados[neighbor[0]][neighbor[1]]) {
-        this.visitados[neighbor[0]][neighbor[1]] = true; // colocando o nó visitado para true
-        queue.push(neighbor);
+    this.visited[startNode[0]][startNode[1]] = true;
+    while (queue.length > 0) {
+      let currentNode = queue.shift();
+      let neighbors = this.graph.graph_matrix[currentNode[0]][currentNode[1]];
+      for (let i = 0; i < neighbors.length; i++) {
+        let neighbor = neighbors[i];
+
+        if (!this.visited[neighbor[0]][neighbor[1]]) {
+          this.visited[neighbor[0]][neighbor[1]] = true; // colocando o nó visitado para true
+          queue.push(neighbor);
+        }
       }
     }
-  }
   }
   
   initialize_matrix(){
@@ -86,16 +88,15 @@ class Map{
   }
   
   initialize_visited(){
-    let matrix = [];
+    this.visited = [];
       
     for(let i=0; i<this.rows; i++){
-      matrix[i] = [];
+      this.visited[i] = [];
       for(let j=0; j<this.cols; j++){
         let curr = false;
-        matrix[i][j] = curr;
+        this.visited[i][j] = curr;
       }
     }
-    return matrix;
   }
   
   show(){
