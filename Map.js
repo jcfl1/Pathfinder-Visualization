@@ -11,12 +11,20 @@ class Map{
     this.cols = cols;
     this.block_width = width/cols;
     this.block_height = height/rows;
+    this.pathExists = false;
+    this.visitados = this.initialize_visited();
     
-    // Create Visualization Matrix
-    this.initialize_matrix();
+    while(this.pathExists == false){
+      // Create Visualization Matrix
+      this.initialize_matrix();
     
     // Create Graph
-    this.graph = new Graph(this.matrix);
+      this.graph = new Graph(this.matrix);
+      
+      this.checkPath();
+    }
+    
+    
     
     // Create Agent
     this.agent_pos_x = floor(random(cols));
@@ -34,8 +42,38 @@ class Map{
     
   }
   
-  initialize_matrix(){
+  checkPath(){
+    this.bfs();
+    if(this.visitados[this.target_pos_y][this.target_pos_x]){
+      this.pathExists = true;
+    }
+  }
+  
+  bfs() {
+  let startNode = [];
+  startNode.push(this.agent_pos_y)
+  startNode.push(this.agent_pos_x)
+  let queue = [startNode];
+  
+  this.visitados[startNode[0]][startNode[1]] = true;
+  
+  while (queue.length > 0) {
+    let currentNode = queue.shift();
     
+    let neighbors = this.graph[currentNode[0]][currentNode[1]];
+    
+    for (let i = 0; i < neighbors.length; i++) {
+      let neighbor = neighbors[i];
+      
+      if (!this.visitados[neighbor[0]][neighbor[1]]) {
+        this.visitados[neighbor[0]][neighbor[1]] = true; // colocando o nó visitado para true
+        queue.push(neighbor);
+      }
+    }
+  }
+  }
+  
+  initialize_matrix(){
     this.matrix = [];
       
     for(let i=0; i<this.rows; i++){
@@ -45,6 +83,19 @@ class Map{
         this.matrix[i][j] = curr;
       }
     }
+  }
+  
+  initialize_visited(){
+    let matrix = [];
+      
+    for(let i=0; i<this.rows; i++){
+      matrix[i] = [];
+      for(let j=0; j<this.cols; j++){
+        let curr = false;
+        matrix[i][j] = curr;
+      }
+    }
+    return matrix;
   }
   
   show(){
