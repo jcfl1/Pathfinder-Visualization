@@ -3,22 +3,22 @@ class Graph{
     // Get matrix dimension
     this.dim = matrix.length;
     
-    this.graph = []
+    this.graph_matrix = new Array(this.dim)
     for(let i=0; i<this.dim; i++){
-      this.graph[i] = [];
+      this.graph_matrix[i] = new Array(this.dim);
       for(let j=0; j<this.dim; j++){
         
         // Initialize list 
-        this.graph[i][j] = [];
+        this.graph_matrix[i][j] = [];
         
         // Upper node
-        if (this.get_up(i, j, matrix) != null) {this.graph[i][j].push(this.get_up(i, j, matrix));}
+        if (this.get_up(i, j, matrix) != null) {this.graph_matrix[i][j].push(this.get_up(i, j, matrix));}
         // Right node
-        if (this.get_right(i, j, matrix) != null) {this.graph[i][j].push(this.get_right(i, j, matrix));}
+        if (this.get_right(i, j, matrix) != null) {this.graph_matrix[i][j].push(this.get_right(i, j, matrix));}
         // Down node
-        if (this.get_down(i, j, matrix) != null) {this.graph[i][j].push(this.get_down(i, j, matrix));}
+        if (this.get_down(i, j, matrix) != null) {this.graph_matrix[i][j].push(this.get_down(i, j, matrix));}
         // Left node
-        if (this.get_left(i, j, matrix) != null) {this.graph[i][j].push(this.get_left(i, j, matrix));}
+        if (this.get_left(i, j, matrix) != null) {this.graph_matrix[i][j].push(this.get_left(i, j, matrix));}
         
       }
     }
@@ -82,10 +82,10 @@ class Graph{
         console.log('From node:');
         console.log(i, j);
         let st = '';
-        for(let k=0; k<this.graph[i][j].length; k++){
-          let a = this.graph[i][j].length;
+        for(let k=0; k<this.graph_matrix[i][j].length; k++){
+          let a = this.graph_matrix[i][j].length;
           console.log(a);
-          //st = st + this.graph[i][j][k].toString() + ' ,';
+          //st = st + this.graph_matrix[i][j][k].toString() + ' ,';
         }
         //console.log(st);
       } 
