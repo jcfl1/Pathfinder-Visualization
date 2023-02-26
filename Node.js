@@ -2,7 +2,6 @@ class Node{
     constructor(i, j, father){
       this.i = i;
       this.j = j;
-      
       this.father = father;
     }
   

@@ -1,6 +1,8 @@
 var mapa;
 
-var INCREMENTAL_BFS = true;
+var SEARCH_MODE = 'bfs';
+
+
 var hasFound = false;
 var hasPrintedPath = false;
 var hasArrived = false;
@@ -13,10 +15,8 @@ function setup() {
   background(50);
   mapa = new Map(800, 600, 18, 18);
   
-  if(INCREMENTAL_BFS){
-    mapa.initialize_visited();
-    mapa.setup_incremental_bfs();
-  }
+  mapa.search_mode = SEARCH_MODE;
+  mapa.setup_search();
 }
 
 function draw() {
@@ -48,12 +48,13 @@ function draw() {
   
   
   // Find the path
-  if(INCREMENTAL_BFS && !hasFound){
+  if(!hasFound){
     if(mapa.visited[mapa.target_pos_y][mapa.target_pos_x]){
       hasFound = true;
+      mapa.find_path();
     }
     
-    mapa.incremental_bfs();
+    mapa.run_search();
   }
   
   mapa.show();

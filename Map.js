@@ -43,9 +43,34 @@ class Map{
        this.initialize_path_matrix();
       
        this.checkPath(); // se não houver caminho ate o alvo, o mapa será refeito
-     }
-    
-    this.find_path();
+       this.search_mode = 'bfs'
+      }
+  }
+
+  setup_search(){
+    // Initialize matrices
+    this.initialize_visited();
+    this.initialize_path_matrix();
+    this.initialize_cost_matrix();
+    this.initialize_node_matrix();
+
+    if(this.search_mode == 'bfs'){
+      this.setup_incremental_bfs();
+    }
+
+    else if(this.search_mode == 'a_star'){
+      this.setup_incremental_a_star();
+    }
+  }
+
+  run_search(){
+    if(this.search_mode == 'bfs'){
+      this.incremental_bfs();
+    }
+
+    else if(this.search_mode == 'a_star'){
+      this.incremental_a_star();
+    }
   }
   
    checkPath(){
@@ -82,6 +107,65 @@ class Map{
       }
     }
   }
+
+  heuristic(node){
+    return abs(node.i - this.target_pos_y) + abs(node.j - this.target_pos_x);
+  }
+
+  setup_incremental_a_star(){
+    let startNode = this.graph.graph_node_matrix[this.agent_pos_y][this.agent_pos_x];
+    // In this case this._queue will a be list of tuples [Node, PRIORITY_COST]
+    this.initialize_cost_matrix();
+    this._cost[startNode.i][startNode.j] = 0;
+    
+    // Add to queue, add to node matrix
+    this.node_matrix[startNode.i][startNode.j] = startNode.copy();
+    this._queue.push([startNode, 0]);
+  }
+
+  incremental_a_star(){
+    if(this._queue.length > 0){
+      // Find highest priority (the one with lowest PRIORITY_COST)
+      let winner = 0;
+      for(let i=0; i < this._queue.length; i++){
+        if(this._queue[i][1] < this._queue[winner][1]){
+          winner = i;
+        }
+      }
+
+      // Get current node (higest priority)
+      let currentNode = this._queue[winner][0];
+
+      // Get neighbors and check if new cost is better than old costs. If so, add it to queue
+      let new_cost, neighbor_and_edge_cost, neighbor, edge_cost;
+      for(let i=0; i < currentNode.neighbors.length; i++){
+        // Get neighbor
+        neighbor_and_edge_cost = this.graph.graph_node_matrix[currentNode.i][currentNode.j][i];
+        neighbor = neighbor_and_edge_cost[0];
+        edge_cost = neighbor_and_edge_cost[1];
+
+        // Check if new cost is better than old cost
+        new_cost = this._cost[currentNode.i][currentNode.j] + edge_cost;
+        if(this._cost[neighbor.i][neighbor.j] == null || new_cost < this._cost[neighbor.i][neighbor.j]){
+          // Add it to queue
+          let priority = new_cost + this.heuristic(neighbor);
+          this._queue.push([neighbor, priority]);
+          
+          // Save its new cost
+          this._cost = new_cost;
+          
+          // Save its father
+          neighbor.father = currentNode;
+          this.node_matrix[neighbor.i][neighbor.j] = neighbor.copy();
+        }
+      }
+
+      // Visit current node
+      this.visited[currentNode.i][currentNode.j] = true;
+
+    }
+  }
+
   
   setup_incremental_bfs(){
     let startNode = new Node(this.agent_pos_y, this.agent_pos_x, null);
@@ -105,9 +189,9 @@ class Map{
           neighbor.father = currentNode;
           
           // Add to queue, visit and add to node matrix
+          this._queue.push(neighbor);
           this.visited[neighbor.i][neighbor.j] = true;
           this.node_matrix[neighbor.i][neighbor.j] = neighbor.copy();
-          this._queue.push(neighbor);
         }
       }
     }
@@ -175,6 +259,17 @@ class Map{
       for(let j=0; j<this.cols; j++){
         let curr = null;
         this.node_matrix[i][j] = curr;
+      }
+    }
+  }
+
+  initialize_cost_matrix(){
+    this._cost = [];
+    for(let i=0; i<this.rows; i++){
+      this._cost[i] = [];
+      for(let j=0; j<this.cols; j++){
+        let curr = null;
+        this._cost[i][j] = curr;
       }
     }
   }

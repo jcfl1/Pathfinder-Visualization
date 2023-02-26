@@ -2,7 +2,8 @@ class Graph{
   constructor(matrix){
     // Get matrix dimension
     this.dim = matrix.length;
-    
+
+    // Legacy code
     this.graph_matrix = new Array(this.dim)
     for(let i=0; i<this.dim; i++){
       this.graph_matrix[i] = new Array(this.dim);
@@ -19,6 +20,25 @@ class Graph{
         if (this.get_down(i, j, matrix) != null) {this.graph_matrix[i][j].push(this.get_down(i, j, matrix));}
         // Left node
         if (this.get_left(i, j, matrix) != null) {this.graph_matrix[i][j].push(this.get_left(i, j, matrix));}
+        
+      }
+    }
+
+    // Updated code
+    this.graph_node_matrix = new Array(this.dim)
+    for(let i=0; i<this.dim; i++){
+      this.graph_node_matrix[i] = new Array(this.dim);
+      for(let j=0; j<this.dim; j++){
+        
+        // Initialize list 
+        this.graph_node_matrix[i][j] = new Node(i, j, undefined)
+        this.graph_node_matrix[i][j].neighbors = [];
+        for(let k=0; k<this.graph_matrix[i][j].length; k++){
+          let currEdge = this.graph_matrix[i][j][k];
+
+          // Adding a tuple: [Node(), Weight] to .neighbors list
+          this.graph_node_matrix[i][j].neighbors.push([new Node(currEdge[0], currEdge[1], undefined), currEdge[2]]);
+        }
         
       }
     }
