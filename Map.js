@@ -62,7 +62,6 @@ class Map{
     }
 
     else if(this.search_mode == 'a_star'){
-      console.log('a_star');
       this.setup_incremental_a_star();
     }
   }
@@ -143,8 +142,6 @@ class Map{
       let half_before_currentNode = this._queue.slice(0, winner);
       let half_after_currentNode = this._queue.slice(winner+1);
       this._queue = half_before_currentNode.concat(half_after_currentNode);
-
-      console.log(currentNode);
 
       // Get neighbors and check if new cost is better than old costs. If so, add it to queue
       let new_cost, neighbor_and_edge_cost, neighbor, edge_cost;
