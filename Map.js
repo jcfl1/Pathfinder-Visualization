@@ -64,6 +64,10 @@ class Map{
     else if(this.search_mode == 'a_star'){
       this.setup_incremental_a_star();
     }
+
+    else if(this.search_mode == 'ucs'){
+      this.setup_incremental_ucs();
+    }
   }
 
   run_search(){
@@ -73,6 +77,10 @@ class Map{
 
     else if(this.search_mode == 'a_star'){
       this.incremental_a_star();
+    }
+
+    else if(this.search_mode == 'ucs'){
+      this.incremental_ucs();
     }
   }
   
@@ -113,6 +121,43 @@ class Map{
 
   heuristic(node){
     return abs(node.i - this.target_pos_y) + abs(node.j - this.target_pos_x);
+  }
+
+  setup_incremental_ucs() {
+    let startNode = new Node(this.agent_pos_y, this.agent_pos_x, null);
+    this._queue = [];
+
+    // Add to queue, visit and add to node matrix
+    this.node_matrix[startNode.i][startNode.j] = startNode.copy();
+    this.visited[startNode.i][startNode.j] = true;
+    this._queue.push([0,startNode]);
+  }
+  
+  incremental_ucs() {
+    if (this._queue.length > 0) {
+      this._queue.sort();
+      let p = this._queue.shift();
+      
+      let currentNode = p[1]
+
+      let neighbors = this.graph.graph_matrix[currentNode.i][currentNode.j];
+      for (let i = 0; i < neighbors.length; i++) {
+        let neighbor = new Node(neighbors[i][0], neighbors[i][1], undefined);
+
+        if (!this.visited[neighbor.i][neighbor.j]) {
+          // Save its father
+          neighbor.father = currentNode;
+
+          // Add to queue, visit and add to node matrix
+          this.visited[neighbor.i][neighbor.j] = true;
+          this.node_matrix[neighbor.i][neighbor.j] = neighbor.copy();
+          this._queue.push([
+            (this.matrix[neighbor.i][neighbor.j]+1)*-1,
+            neighbor
+          ]);
+        }
+      }
+    }
   }
 
   setup_incremental_a_star(){
@@ -230,6 +275,24 @@ class Map{
       this.matrix[i] = [];
       for(let j=0; j<this.cols; j++){
         let curr = floor(random(0,4));
+        this.matrix[i][j] = curr;
+      }
+    }
+  }
+
+  initialize_test_matrix() {
+    this.matrix = [];
+
+    for (let i = 0; i < this.rows; i++) {
+      this.matrix[i] = [];
+      for (let j = 0; j < this.cols; j++) {
+        let curr;
+        if(j > this.cols/4 && j < 3*this.cols/4 && i > this.rows/4 && i < 3*this.rows/4){
+          curr = 2;
+        }
+        else{
+          curr = 0;
+        }
         this.matrix[i][j] = curr;
       }
     }
@@ -353,10 +416,14 @@ class Map{
         currentNode = currentNode[0];
       }
 
+      if(this.search_mode == 'ucs'){
+        currentNode = currentNode[1];
+      }
+
       let i = currentNode.i;
       let j = currentNode.j;
       
-      fill(0, 0, 0, 50);
+      fill(0, 255, 0, 50);
       stroke(0, 255, 0);
       rect(j*this.block_width, i*this.block_height, this.block_width, this.block_height);
     }
