@@ -37,17 +37,15 @@ class Map{
        // Create Graph
        this.graph = new Graph(this.matrix);
       
-       // Create Visited Matrix
+       // Create Matrices
        this.initialize_visited();
-       
-       // Create Node Matrix
        this.initialize_node_matrix();
+       this.initialize_path_matrix();
       
        this.checkPath(); // se não houver caminho ate o alvo, o mapa será refeito
      }
     
     this.find_path();
-    this.show();
   }
   
    checkPath(){
@@ -87,17 +85,17 @@ class Map{
   
   setup_incremental_bfs(){
     let startNode = new Node(this.agent_pos_y, this.agent_pos_x, null);
-    this._bfs_queue = [];
+    this._queue = [];
     
     // Add to queue, visit and add to node matrix
     this.node_matrix[startNode.i][startNode.j] = startNode.copy();
     this.visited[startNode.i][startNode.j] = true;
-    this._bfs_queue.push(startNode);
+    this._queue.push(startNode);
   }
   
   incremental_bfs(){
-    if(this._bfs_queue.length > 0){
-      let currentNode = this._bfs_queue.shift();
+    if(this._queue.length > 0){
+      let currentNode = this._queue.shift();
       let neighbors = this.graph.graph_matrix[currentNode.i][currentNode.j];
       for (let i = 0; i < neighbors.length; i++) {
         let neighbor = new Node(neighbors[i][0], neighbors[i][1], undefined);
@@ -109,7 +107,7 @@ class Map{
           // Add to queue, visit and add to node matrix
           this.visited[neighbor.i][neighbor.j] = true;
           this.node_matrix[neighbor.i][neighbor.j] = neighbor.copy();
-          this._bfs_queue.push(neighbor);
+          this._queue.push(neighbor);
         }
       }
     }
@@ -158,6 +156,18 @@ class Map{
     }
   }
   
+  initialize_path_matrix(){
+    this.path_matrix = [];
+      
+    for(let i=0; i<this.rows; i++){
+      this.path_matrix[i] = [];
+      for(let j=0; j<this.cols; j++){
+        let curr = false;
+        this.path_matrix[i][j] = curr;
+      }
+    }
+  }
+  
   initialize_node_matrix(){
     this.node_matrix = [];
     for(let i=0; i<this.rows; i++){
@@ -178,54 +188,82 @@ class Map{
       } while(currentDate - date < milliseconds);
   }
   
+  print_path(count){
+    let currentNode = this.path[count];
+    this.path_matrix[currentNode.i][currentNode.j] = true; 
+    this.sleep(100);
+  }
+  
   walk(count){
+    let currentNode = this.path[count];
+    this.path_matrix[currentNode.i][currentNode.j] = false; 
+    
     this.agent_pos_x = this.path[count].j;
     this.agent_pos_y = this.path[count].i;
     let weight = this.matrix[this.path[count].i][this.path[count].j];
     
-    this.sleep(500*weight);
+    this.sleep(50 + 400*weight);
   }
   
   show(){
     // Print blocks
-    // 0: earth, 1: mud, 2: water
+    // 0: earth, 1: mud, 2: water, 3: wall
     for(var i=0; i <this.rows; i++){
       for(var j=0; j < this.cols; j++){
+        stroke(0, 0, 0, 80)
         if(this.matrix[i][j] == 0){
           fill(255 , 248, 220);
-          stroke(0)
         }
         else if (this.matrix[i][j] == 1){
           fill(208,187,148);
-          stroke(0)
         }
         else if (this.matrix[i][j] == 2){
           fill(150, 150, 220);
-          stroke(0)
         }
         else if (this.matrix[i][j] == 3){
           fill(110);
-          stroke(0)
         }
         rect(j*this.block_width, i*this.block_height, this.block_width, this.block_height);
-        //vou ver se foi visitado
+
         if(this.visited[i][j]){
-          // a cor fica mais clara
+          // If visited, then color gets darker
           fill(0, 0, 0, 50)
           stroke(255, 0, 0)
           rect(j*this.block_width, i*this.block_height, this.block_width, this.block_height);
         }
+        
+        if(this.path_matrix[i][j]){
+          // If exists a path, print it
+          fill(255, 255, 255, 180);
+          stroke(0, 0, 0, 80);
+          rectMode(CENTER)
+          rect(j*this.block_width + this.block_width/2, i*this.block_height + this.block_height/2, this.block_width/2, this.block_height/2);
+          rectMode(CORNER)
+        }
       }
     }
     
+    // Print Frontier
+    for(let qindex=0; qindex < this._queue.length; qindex++){
+      let currentNode = this._queue[qindex];
+      let i = currentNode.i;
+      let j = currentNode.j;
+      
+      fill(0, 0, 0, 50);
+      stroke(0, 255, 0);
+      rect(j*this.block_width, i*this.block_height, this.block_width, this.block_height);
+    }
+    
+    
+    
+    stroke(0)
+    
     // Print Agent
     fill(249, 215, 28); // kind of blue color
-    //rect(this.agent_pos_x*this.block_width, this.agent_pos_y*this.block_height, this.block_width, this.block_height);
     circle(this.agent_pos_x*this.block_width+this.block_width/2, this.agent_pos_y*this.block_height+this.block_height/2, this.block_height/1.5)
     
     // Print target
     fill(160, 0, 0);
-    //rect(this.target_pos_x*this.block_width, this.target_pos_y*this.block_height, this.block_width, this.block_height);
     circle(this.target_pos_x*this.block_width+this.block_width/2, this.target_pos_y*this.block_height+this.block_height/2, this.block_height/1.5)
   } 
   
