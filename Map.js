@@ -54,11 +54,15 @@ class Map{
     this.initialize_cost_matrix();
     this.initialize_node_matrix();
 
+    // Initialize queue
+    this._queue = [];
+
     if(this.search_mode == 'bfs'){
       this.setup_incremental_bfs();
     }
 
     else if(this.search_mode == 'a_star'){
+      console.log('a_star');
       this.setup_incremental_a_star();
     }
   }
@@ -135,13 +139,20 @@ class Map{
 
       // Get current node (higest priority)
       let currentNode = this._queue[winner][0];
+      // Removing this element from queue
+      let half_before_currentNode = this._queue.slice(0, winner);
+      let half_after_currentNode = this._queue.slice(winner+1);
+      this._queue = half_before_currentNode.concat(half_after_currentNode);
+
+      console.log(currentNode);
 
       // Get neighbors and check if new cost is better than old costs. If so, add it to queue
       let new_cost, neighbor_and_edge_cost, neighbor, edge_cost;
       for(let i=0; i < currentNode.neighbors.length; i++){
         // Get neighbor
-        neighbor_and_edge_cost = this.graph.graph_node_matrix[currentNode.i][currentNode.j][i];
+        neighbor_and_edge_cost = this.graph.graph_node_matrix[currentNode.i][currentNode.j].neighbors[i];
         neighbor = neighbor_and_edge_cost[0];
+        neighbor = this.graph.graph_node_matrix[neighbor.i][neighbor.j]
         edge_cost = neighbor_and_edge_cost[1];
 
         // Check if new cost is better than old cost
@@ -152,7 +163,7 @@ class Map{
           this._queue.push([neighbor, priority]);
           
           // Save its new cost
-          this._cost = new_cost;
+          this._cost[neighbor.i][neighbor.j] = new_cost;
           
           // Save its father
           neighbor.father = currentNode;
@@ -169,7 +180,6 @@ class Map{
   
   setup_incremental_bfs(){
     let startNode = new Node(this.agent_pos_y, this.agent_pos_x, null);
-    this._queue = [];
     
     // Add to queue, visit and add to node matrix
     this.node_matrix[startNode.i][startNode.j] = startNode.copy();
@@ -341,6 +351,11 @@ class Map{
     // Print Frontier
     for(let qindex=0; qindex < this._queue.length; qindex++){
       let currentNode = this._queue[qindex];
+
+      if(this.search_mode == 'a_star'){
+        currentNode = currentNode[0];
+      }
+
       let i = currentNode.i;
       let j = currentNode.j;
       
