@@ -68,6 +68,10 @@ class Map{
     else if(this.search_mode == 'ucs'){
       this.setup_incremental_ucs();
     }
+
+    else if(this.search_mode == 'greedy'){
+      this.setup_incremental_greedy();
+    }
   }
 
   run_search(){
@@ -81,6 +85,10 @@ class Map{
 
     else if(this.search_mode == 'ucs'){
       this.incremental_ucs();
+    }
+
+    else if(this.search_mode == 'greedy'){
+      this.greedy();
     }
   }
   
@@ -219,7 +227,53 @@ class Map{
     }
   }
 
-  
+  setup_incremental_greedy(){
+    let startNode = this.graph.graph_node_matrix[this.agent_pos_y][this.agent_pos_x];
+    // In this case this._queue will a be list of tuples [Node, PRIORITY_COST]
+    this.initialize_cost_matrix();
+    this._cost[startNode.i][startNode.j] = 0;
+    
+    // Add to queue, add to node matrix
+    this.node_matrix[startNode.i][startNode.j] = startNode.copy();
+    this._queue.push([startNode, 0]);
+  }
+
+  greedy() {
+    if(this._queue.length > 0){
+      print(this._queue);
+      // Find highest priority (the one with lowest PRIORITY_COST)
+      let winner = 0;
+      for(let i=0; i < this._queue.length; i++){
+        if(this._queue[i][1] < this._queue[winner][1]){
+          winner = i;
+        }
+      }
+      
+      let currentNode = this._queue[winner][0];
+      this.visited[currentNode.i][currentNode.j] = true;
+      // Removing this element from queue
+      let half_before_currentNode = this._queue.slice(0, winner);
+      let half_after_currentNode = this._queue.slice(winner+1);
+      this._queue = half_before_currentNode.concat(half_after_currentNode);
+
+      if(currentNode.i == this.target_pos_y && currentNode.j == this.target_pos_x){
+        return
+      }
+
+      let neighbors = this.graph.graph_matrix[currentNode.i][currentNode.j];
+      for (let i = 0; i < neighbors.length; i++) {
+        let neighbor = new Node(neighbors[i][0], neighbors[i][1], undefined);
+        let currentCost = this.heuristic(neighbor)
+        if(!this.visited[neighbor.i][neighbor.j]){
+          this._queue.push([neighbor, currentCost]);
+        }
+        
+        neighbor.father = currentNode;
+        this.node_matrix[neighbor.i][neighbor.j] = neighbor.copy();
+      }
+    }
+  }
+
   setup_incremental_bfs(){
     let startNode = new Node(this.agent_pos_y, this.agent_pos_x, null);
     
@@ -228,6 +282,7 @@ class Map{
     this.visited[startNode.i][startNode.j] = true;
     this._queue.push(startNode);
   }
+  
   
   incremental_bfs(){
     if(this._queue.length > 0){
@@ -247,7 +302,7 @@ class Map{
         }
       }
     }
-  }
+  };
   
   find_path(){
     // Should be called ONLY AFTER one search algorithmn has been finished
@@ -412,7 +467,7 @@ class Map{
     for(let qindex=0; qindex < this._queue.length; qindex++){
       let currentNode = this._queue[qindex];
 
-      if(this.search_mode == 'a_star'){
+      if(this.search_mode == 'a_star' || this.search_mode == "greedy"){
         currentNode = currentNode[0];
       }
 
