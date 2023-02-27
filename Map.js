@@ -1,5 +1,3 @@
-// [ToDo] Setar bloco em baixo do agente para ser areia
-
 class Map{
   constructor(width, height, rows, cols){
     // Creating canvas
@@ -56,6 +54,9 @@ class Map{
 
     // Initialize queue
     this._queue = [];
+    
+    //Initialize stack
+    this._stack = [];
 
     if(this.search_mode == 'bfs'){
       this.setup_incremental_bfs();
@@ -71,6 +72,10 @@ class Map{
 
     else if(this.search_mode == 'greedy'){
       this.setup_incremental_greedy();
+    }
+    
+    else if(this.search_mode == 'dfs'){
+      this.setup_incremental_dfs();
     }
   }
 
@@ -89,6 +94,10 @@ class Map{
 
     else if(this.search_mode == 'greedy'){
       this.greedy();
+    }
+    
+    else if(this.search_mode == 'dfs'){
+      this.incremental_dfs();
     }
   }
   
@@ -301,7 +310,36 @@ class Map{
         }
       }
     }
-  };
+  }
+    
+     setup_incremental_dfs(){
+    let startNode = new Node(this.agent_pos_y, this.agent_pos_x, null);
+    
+    // Add to stack, visit and add to node matrix
+    this.node_matrix[startNode.i][startNode.j] = startNode.copy();
+    this.visited[startNode.i][startNode.j] = true;
+    this._stack.push(startNode);
+  }
+  
+  incremental_dfs(){
+  if(this._stack.length > 0){
+    let currentNode = this._stack.pop();
+    let neighbors = this.graph.graph_matrix[currentNode.i][currentNode.j];
+    for (let i = 0; i < neighbors.length; i++) {
+      let neighbor = new Node(neighbors[i][0], neighbors[i][1], undefined);
+
+      if (!this.visited[neighbor.i][neighbor.j]) {
+        // Save its father
+        neighbor.father = currentNode;
+        
+        // Add to stack, visit and add to node matrix
+        this._stack.push(neighbor);
+        this.visited[neighbor.i][neighbor.j] = true;
+        this.node_matrix[neighbor.i][neighbor.j] = neighbor.copy();
+      }
+    }
+  }
+}
   
   find_path(){
     // Should be called ONLY AFTER one search algorithmn has been finished
@@ -462,27 +500,44 @@ class Map{
       }
     }
     
-    // Print Frontier
-    for(let qindex=0; qindex < this._queue.length; qindex++){
-      let currentNode = this._queue[qindex];
+    if(this.search_mode == 'dfs'){
+      // Print Frontier
+      for(let qindex=0; qindex < this._stack.length; qindex++){
+        let currentNode = this._stack[qindex];
 
-      if(this.search_mode == 'a_star' || this.search_mode == "greedy"){
+        if (currentNode) { // add a check to ensure currentNode is not undefined
+          let i = currentNode.i;
+          let j = currentNode.j;
+    
+          fill(0, 255, 0, 50);
+          stroke(0, 255, 0);
+        rect(j*this.block_width, i*this.block_height, this.block_width, this.block_height);
+        }
+      } 
+    }
+    
+    else{
+      // Print Frontier
+      for(let qindex=0; qindex < this._queue.length; qindex++){
+        let currentNode = this._queue[qindex];
+
+        if(this.search_mode == 'a_star' || this.search_mode == "greedy"){
         currentNode = currentNode[0];
       }
 
-      if(this.search_mode == 'ucs'){
-        currentNode = currentNode[1];
-      }
-
-      let i = currentNode.i;
-      let j = currentNode.j;
+        if(this.search_mode == 'ucs'){
+          currentNode = currentNode[1];
+        }
       
-      fill(0, 255, 0, 50);
-      stroke(0, 255, 0);
-      rect(j*this.block_width, i*this.block_height, this.block_width, this.block_height);
+
+        let i = currentNode.i;
+        let j = currentNode.j;
+      
+        fill(0, 255, 0, 50);
+        stroke(0, 255, 0);
+        rect(j*this.block_width, i*this.block_height, this.block_width, this.block_height);
+      } 
     }
-    
-    
     
     stroke(0)
     
