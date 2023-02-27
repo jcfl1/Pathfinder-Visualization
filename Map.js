@@ -10,6 +10,8 @@ class Map{
     this.block_width = width/cols;
     this.block_height = height/rows;
     this.initialize_matrix();
+
+    this.HOLE_PROB = 0.55;
     
     this.pathExists = false;
     while(this.pathExists == false){
@@ -29,7 +31,6 @@ class Map{
       do{
       this.target_pos_y = floor(random(rows));
       } while(abs(this.target_pos_y - this.agent_pos_y) < MIN_DIST);
-      this.matrix[this.target_pos_y][this.target_pos_x] = 0;
     
       // Create Graph
       this.graph = new Graph(this.matrix);
@@ -40,7 +41,6 @@ class Map{
       this.initialize_path_matrix();
     
       this.checkPath(); // se não houver caminho ate o alvo, o mapa será refeito
-      this.search_mode = 'bfs'
     }
   }
   
@@ -61,6 +61,7 @@ class Map{
       this.initialize_path_matrix();
       this.checkPath(); // se não houver caminho ate o alvo, o mapa será refeito
     }
+    this.graph = new Graph(this.matrix);
   }
 
   setup_search(){
@@ -81,11 +82,11 @@ class Map{
     }
 
     else if(this.search_mode == 'a_star'){
-      this.setup_incremental_a_star();
+      this.setup_incremental_ucs_and_a_star();
     }
 
     else if(this.search_mode == 'ucs'){
-      this.setup_incremental_ucs();
+      this.setup_incremental_ucs_and_a_star();
     }
 
     else if(this.search_mode == 'greedy'){
@@ -103,11 +104,11 @@ class Map{
     }
 
     else if(this.search_mode == 'a_star'){
-      this.incremental_a_star();
+      this.incremental_ucs_and_a_star(true);
     }
 
     else if(this.search_mode == 'ucs'){
-      this.incremental_ucs();
+      this.incremental_ucs_and_a_star(false);
     }
 
     else if(this.search_mode == 'greedy'){
@@ -158,44 +159,7 @@ class Map{
     return abs(node.i - this.target_pos_y) + abs(node.j - this.target_pos_x);
   }
 
-  setup_incremental_ucs() {
-    let startNode = new Node(this.agent_pos_y, this.agent_pos_x, null);
-    this._queue = [];
-
-    // Add to queue, visit and add to node matrix
-    this.node_matrix[startNode.i][startNode.j] = startNode.copy();
-    this.visited[startNode.i][startNode.j] = true;
-    this._queue.push([0,startNode]);
-  }
-  
-  incremental_ucs() {
-    if (this._queue.length > 0) {
-      this._queue.sort();
-      let p = this._queue.shift();
-      
-      let currentNode = p[1]
-
-      let neighbors = this.graph.graph_matrix[currentNode.i][currentNode.j];
-      for (let i = 0; i < neighbors.length; i++) {
-        let neighbor = new Node(neighbors[i][0], neighbors[i][1], undefined);
-
-        if (!this.visited[neighbor.i][neighbor.j]) {
-          // Save its father
-          neighbor.father = currentNode;
-
-          // Add to queue, visit and add to node matrix
-          this.visited[neighbor.i][neighbor.j] = true;
-          this.node_matrix[neighbor.i][neighbor.j] = neighbor.copy();
-          this._queue.push([
-            (this.matrix[neighbor.i][neighbor.j]+1)*-1,
-            neighbor
-          ]);
-        }
-      }
-    }
-  }
-
-  setup_incremental_a_star(){
+  setup_incremental_ucs_and_a_star(){
     let startNode = this.graph.graph_node_matrix[this.agent_pos_y][this.agent_pos_x];
     // In this case this._queue will a be list of tuples [Node, PRIORITY_COST]
     this.initialize_cost_matrix();
@@ -206,7 +170,7 @@ class Map{
     this._queue.push([startNode, 0]);
   }
 
-  incremental_a_star(){
+  incremental_ucs_and_a_star(is_a_star){
     if(this._queue.length > 0){
       // Find highest priority (the one with lowest PRIORITY_COST)
       let winner = 0;
@@ -236,7 +200,8 @@ class Map{
         new_cost = this._cost[currentNode.i][currentNode.j] + edge_cost;
         if(this._cost[neighbor.i][neighbor.j] == null || new_cost < this._cost[neighbor.i][neighbor.j]){
           // Add it to queue
-          let priority = new_cost + this.heuristic(neighbor);
+          let priority = new_cost;
+          if(is_a_star) priority += this.heuristic(neighbor);
           this._queue.push([neighbor, priority]);
           
           // Save its new cost
@@ -250,7 +215,6 @@ class Map{
 
       // Visit current node
       this.visited[currentNode.i][currentNode.j] = true;
-
     }
   }
 
@@ -276,7 +240,7 @@ class Map{
       }
       
       let currentNode = this._queue[winner][0];
-      this.visited[currentNode.i][currentNode.j] = true;
+      // this.visited[currentNode.i][currentNode.j] = true;
       // Removing this element from queue
       let half_before_currentNode = this._queue.slice(0, winner);
       let half_after_currentNode = this._queue.slice(winner+1);
@@ -292,6 +256,7 @@ class Map{
         let currentCost = this.heuristic(neighbor)
         if(!this.visited[neighbor.i][neighbor.j]){
           this._queue.push([neighbor, currentCost]);
+          this.visited[neighbor.i][neighbor.j] = true;
         }
         
         neighbor.father = currentNode;
@@ -361,7 +326,6 @@ class Map{
   
   find_path(){
     // Should be called ONLY AFTER one search algorithmn has been finished
-    
     let path = [];
     path.push(this.node_matrix[this.target_pos_y][this.target_pos_x]);
   
@@ -379,11 +343,12 @@ class Map{
   
   initialize_matrix(){
     this.matrix = [];
-      
+    noiseSeed(random(10000));
+
     for(let i=0; i<this.rows; i++){
       this.matrix[i] = [];
       for(let j=0; j<this.cols; j++){
-        let freq = 2.5;
+        let freq = 2;
         let ni = i/this.cols
         let nj = j/this.rows
         let curr = map(noise(freq*ni, freq*nj), 0, 1, 0, 3);
@@ -438,18 +403,18 @@ class Map{
   }
 
   addHWall(minX, maxX, y) {
-    var hole = random(minX, maxX);
+    var hole = random();
 
     for (var i = minX; i <= maxX; i++) {
-        if (i != hole) this.matrix[y][i] = 3;
+        if (hole >= this.HOLE_PROB) this.matrix[y][i] = 3;
     }
   }
 
   addVWall(minY, maxY, x) {
-    var hole = random(minY, maxY);
+    var hole = random();
 
     for (var i = minY; i <= maxY; i++) {
-        if (i != hole) this.matrix[i][x] = 3;
+        if (hole >= this.HOLE_PROB) this.matrix[i][x] = 3;
     }
   }
 
@@ -522,7 +487,8 @@ class Map{
     this.agent_pos_y = this.path[count].i;
     let weight = this.matrix[this.path[count].i][this.path[count].j];
     
-    this.sleep(50 + 400*weight);
+    //this.sleep(50 + 400*weight);
+    this.sleep(100*weight);
   }
   
   show(){
@@ -574,7 +540,7 @@ class Map{
     
           fill(0, 255, 0, 50);
           stroke(0, 255, 0);
-        rect(j*this.block_width, i*this.block_height, this.block_width, this.block_height);
+          rect(j*this.block_width, i*this.block_height, this.block_width, this.block_height);
         }
       } 
     }
@@ -584,12 +550,8 @@ class Map{
       for(let qindex=0; qindex < this._queue.length; qindex++){
         let currentNode = this._queue[qindex];
 
-        if(this.search_mode == 'a_star' || this.search_mode == "greedy"){
-        currentNode = currentNode[0];
-      }
-
-        if(this.search_mode == 'ucs'){
-          currentNode = currentNode[1];
+        if(this.search_mode == 'ucs' || this.search_mode == 'a_star'|| this.search_mode == "greedy"){
+          currentNode = currentNode[0];
         }
       
         let i = currentNode.i;

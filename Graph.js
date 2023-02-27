@@ -44,18 +44,17 @@ class Graph{
     }
     
     this.marked = [];
-  }
-    
+  } 
     
   assign_cost(num){
     if(num == 0){
       return 1;
     }
     else if(num == 1){
-      return 5;
+      return 3;
     }
     else if(num == 2){
-      return 10;
+      return 7;
     }
     else{
       return 999;
@@ -112,6 +111,4 @@ class Graph{
       console.log('-------');
    }
   }
-  
-  
 }
