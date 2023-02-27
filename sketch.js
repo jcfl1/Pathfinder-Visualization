@@ -1,6 +1,6 @@
 var mapa;
 
-var SEARCH_MODE = 'bfs';
+var SEARCH_MODE = 'greedy';
 
 
 var hasFound = false;
@@ -35,7 +35,7 @@ function draw() {
     
   }
   
-  //If finded path, then show it
+  //If found path, then show it
   if(hasFound && !hasPrintedPath){
     mapa.print_path(count);
     count = count + 1;
