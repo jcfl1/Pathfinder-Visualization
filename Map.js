@@ -12,37 +12,55 @@ class Map{
     this.initialize_matrix();
     
     this.pathExists = false;
+    while(this.pathExists == false){
+      // Create Visualization Matrix
+      this.initialize_matrix();
+      
+      // Create Agent
+      this.agent_pos_x = floor(random(cols));
+      this.agent_pos_y = floor(random(rows));
+      this.matrix[this.agent_pos_y][this.agent_pos_x] = 0;
     
-     while(this.pathExists == false){
-       // Create Visualization Matrix
-       this.initialize_matrix();
-       
-       // Create Agent
-       this.agent_pos_x = floor(random(cols));
-       this.agent_pos_y = floor(random(rows));
-       this.matrix[this.agent_pos_y][this.agent_pos_x] = 0;
-      
-       // Create target
-       const MIN_DIST = 5;
-       do{
-        this.target_pos_x = floor(random(cols));
-        } while(abs(this.target_pos_x - this.agent_pos_x) < MIN_DIST);
-       do{
-        this.target_pos_y = floor(random(rows));
-        } while(abs(this.target_pos_y - this.agent_pos_y) < MIN_DIST);
-       this.matrix[this.target_pos_y][this.target_pos_x] = 0;
-      
-       // Create Graph
-       this.graph = new Graph(this.matrix);
-      
-       // Create Matrices
-       this.initialize_visited();
-       this.initialize_node_matrix();
-       this.initialize_path_matrix();
-      
-       this.checkPath(); // se não houver caminho ate o alvo, o mapa será refeito
-       this.search_mode = 'bfs'
-      }
+      // Create target
+      const MIN_DIST = 5;
+      do{
+      this.target_pos_x = floor(random(cols));
+      } while(abs(this.target_pos_x - this.agent_pos_x) < MIN_DIST);
+      do{
+      this.target_pos_y = floor(random(rows));
+      } while(abs(this.target_pos_y - this.agent_pos_y) < MIN_DIST);
+      this.matrix[this.target_pos_y][this.target_pos_x] = 0;
+    
+      // Create Graph
+      this.graph = new Graph(this.matrix);
+    
+      // Create Matrices
+      this.initialize_visited();
+      this.initialize_node_matrix();
+      this.initialize_path_matrix();
+    
+      this.checkPath(); // se não houver caminho ate o alvo, o mapa será refeito
+      this.search_mode = 'bfs'
+    }
+  }
+  
+  // Create new target
+  setup_target(){
+    this.pathExists = false;
+    while(this.pathExists == false){
+      const MIN_DIST = 5;
+      do{
+        this.target_pos_x = floor(random(this.cols));
+      } while(abs(this.target_pos_x - this.agent_pos_x) < MIN_DIST);
+      do{
+        this.target_pos_y = floor(random(this.rows));
+      } while(abs(this.target_pos_y - this.agent_pos_y) < MIN_DIST);
+
+      this.initialize_visited();
+      this.initialize_node_matrix();
+      this.initialize_path_matrix();
+      this.checkPath(); // se não houver caminho ate o alvo, o mapa será refeito
+    }
   }
 
   setup_search(){
@@ -101,12 +119,12 @@ class Map{
     }
   }
   
-   checkPath(){
-     this.bfs();
-     if(this.visited[this.target_pos_y][this.target_pos_x]){
-       this.pathExists = true;
-     }
-   }
+  checkPath(){
+    this.bfs();
+    if(this.visited[this.target_pos_y][this.target_pos_x]){
+      this.pathExists = true;
+    }
+  }
   
   bfs() {
     let startNode = new Node(this.agent_pos_y, this.agent_pos_x, null);
@@ -312,7 +330,7 @@ class Map{
     }
   }
     
-     setup_incremental_dfs(){
+  setup_incremental_dfs(){
     let startNode = new Node(this.agent_pos_y, this.agent_pos_x, null);
     
     // Add to stack, visit and add to node matrix
@@ -322,24 +340,24 @@ class Map{
   }
   
   incremental_dfs(){
-  if(this._stack.length > 0){
-    let currentNode = this._stack.pop();
-    let neighbors = this.graph.graph_matrix[currentNode.i][currentNode.j];
-    for (let i = 0; i < neighbors.length; i++) {
-      let neighbor = new Node(neighbors[i][0], neighbors[i][1], undefined);
+    if(this._stack.length > 0){
+      let currentNode = this._stack.pop();
+      let neighbors = this.graph.graph_matrix[currentNode.i][currentNode.j];
+      for (let i = 0; i < neighbors.length; i++) {
+        let neighbor = new Node(neighbors[i][0], neighbors[i][1], undefined);
 
-      if (!this.visited[neighbor.i][neighbor.j]) {
-        // Save its father
-        neighbor.father = currentNode;
-        
-        // Add to stack, visit and add to node matrix
-        this._stack.push(neighbor);
-        this.visited[neighbor.i][neighbor.j] = true;
-        this.node_matrix[neighbor.i][neighbor.j] = neighbor.copy();
+        if (!this.visited[neighbor.i][neighbor.j]) {
+          // Save its father
+          neighbor.father = currentNode;
+          
+          // Add to stack, visit and add to node matrix
+          this._stack.push(neighbor);
+          this.visited[neighbor.i][neighbor.j] = true;
+          this.node_matrix[neighbor.i][neighbor.j] = neighbor.copy();
+        }
       }
     }
   }
-}
   
   find_path(){
     // Should be called ONLY AFTER one search algorithmn has been finished
@@ -358,7 +376,6 @@ class Map{
     
     this.path = path.reverse();
   }
-  
   
   initialize_matrix(){
     this.matrix = [];
@@ -575,7 +592,6 @@ class Map{
           currentNode = currentNode[1];
         }
       
-
         let i = currentNode.i;
         let j = currentNode.j;
       
@@ -594,6 +610,5 @@ class Map{
     // Print target
     fill(160, 0, 0);
     circle(this.target_pos_x*this.block_width+this.block_width/2, this.target_pos_y*this.block_height+this.block_height/2, this.block_height/1.5)
-  } 
-  
+  }
 }

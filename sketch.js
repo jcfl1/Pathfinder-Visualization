@@ -1,13 +1,11 @@
 var mapa;
 
-var SEARCH_MODE = 'greedy';
-
+var SEARCH_MODE = 'ucs';
 
 var hasFound = false;
 var hasPrintedPath = false;
-var hasArrived = false;
+var targetCnt = 0;
 var count = 0;
-
 
 function setup() {
   frameRate(60);
@@ -22,17 +20,21 @@ function setup() {
 function draw() {
   
   //If showed path, then walk
-  if(hasPrintedPath && !hasArrived){
+  if(hasPrintedPath){
     hasFinished = true;
     
     mapa.walk(count);
-    count = count+1;
+    count++;
     
+    // Found target
     if(mapa.agent_pos_x == mapa.target_pos_x && mapa.agent_pos_y == mapa.target_pos_y){
-      hasArrived = true;
-      noLoop();
+      hasFound = false;
+      hasPrintedPath = false;
+      count = 0;
+      targetCnt++;
+      mapa.setup_target();
+      mapa.setup_search();
     }
-    
   }
   
   //If found path, then show it
@@ -46,7 +48,6 @@ function draw() {
     }
   }
   
-  
   // Find the path
   if(!hasFound){
     if(mapa.visited[mapa.target_pos_y][mapa.target_pos_x]){
@@ -58,4 +59,9 @@ function draw() {
   }
   
   mapa.show();
+  let targetCounter = "Targets: " + targetCnt.toString();
+  textSize(32);
+  fill(color('red'));
+  textAlign(CENTER);
+  text(targetCounter, 90, 40);
 }
