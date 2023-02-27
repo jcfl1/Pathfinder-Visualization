@@ -366,10 +366,15 @@ class Map{
     for(let i=0; i<this.rows; i++){
       this.matrix[i] = [];
       for(let j=0; j<this.cols; j++){
-        let curr = floor(random(0,4));
-        this.matrix[i][j] = curr;
+        let freq = 2.5;
+        let ni = i/this.cols
+        let nj = j/this.rows
+        let curr = map(noise(freq*ni, freq*nj), 0, 1, 0, 3);
+        this.matrix[i][j] = floor(curr);
       }
     }
+    // Adicionando obstáculos
+    this.addInnerWalls(true, 1, this.cols - 2, 1, this.rows - 2);
   }
 
   initialize_test_matrix() {
@@ -390,6 +395,47 @@ class Map{
     }
   }
   
+  addInnerWalls(h, minX, maxX, minY, maxY) {
+    if (h) {
+
+        if (maxX - minX < 4) {
+            return;
+        }
+
+        let y = floor(random(minY, maxY));
+        this.addHWall(minX, maxX, y);
+
+        this.addInnerWalls(!h, minX, maxX, minY, y-1);
+        this.addInnerWalls(!h, minX, maxX, y + 1, maxY);
+    } else {
+        if (maxY - minY < 4) {
+            return;
+        }
+
+        let x = floor(random(minX, maxX));
+        this.addVWall(minY, maxY, x);
+
+        this.addInnerWalls(!h, minX, x-1, minY, maxY);
+        this.addInnerWalls(!h, x + 1, maxX, minY, maxY);
+    }
+  }
+
+  addHWall(minX, maxX, y) {
+    var hole = random(minX, maxX);
+
+    for (var i = minX; i <= maxX; i++) {
+        if (i != hole) this.matrix[y][i] = 3;
+    }
+  }
+
+  addVWall(minY, maxY, x) {
+    var hole = random(minY, maxY);
+
+    for (var i = minY; i <= maxY; i++) {
+        if (i != hole) this.matrix[i][x] = 3;
+    }
+  }
+
   initialize_visited(){
     this.visited = [];
       
