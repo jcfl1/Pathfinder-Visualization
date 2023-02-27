@@ -240,7 +240,6 @@ class Map{
 
   greedy() {
     if(this._queue.length > 0){
-      print(this._queue);
       // Find highest priority (the one with lowest PRIORITY_COST)
       let winner = 0;
       for(let i=0; i < this._queue.length; i++){
